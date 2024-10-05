@@ -40,6 +40,11 @@ form button{
     transition: 0.1s ease-in;
     padding: 3px;
 
+    &:disabled{
+        cursor: not-allowed;
+        background-color: rgb(61, 61, 61);
+    }
+
 }
 
 form button:hover{
