@@ -1,0 +1,19 @@
+.addUser{
+    background-color: rgba(134, 158, 203);
+    position: absolute;
+    top: 40px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: auto;
+}
+
+.addUser button{
+    box-shadow: none;
+}
+/* .addUser button:hover{
+    background-color:rgb(0, 234, 255) ;
+} */
+/* .addUser #search:hover{
+    background-color: rgb(21, 108, 143);
+ } */

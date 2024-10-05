@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+}
+
+body{
+  background-image: url(../public/bg.jpg);
+  /* background-color: rgb(0, 0, 0); */
+  background-size: cover; /* Ensures the image covers the entire background */
+  background-position: center; /* Centers the background image */
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.container{
+  width: 90vw;
+  height: 90vh;
+  /* background-color: rgba(17, 25, 40,0.1); */
+  background-color: rgba(242, 246, 254, 0.01);
+  backdrop-filter: blur(19px) saturate(180%);
+  border-radius: 5px;
+  display:flex;
+}
+
+
+
+
