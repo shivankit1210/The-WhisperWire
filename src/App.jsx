@@ -6,14 +6,17 @@ import Notification from "./components/notification/Notification";
 import { useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import {auth} from "./library/firebase"
+import { userStore } from "./library/userStore";
+import "./index.css"
 
 const App = () => {
-  const user = false;
+
+  const {currentUser,IsLoading,fetchUserInfo} = userStore();
 
  
   useEffect(()=>{
     const unSub= onAuthStateChanged(auth,(user)=>{
-      console.log(user);
+      fetchUserInfo(user?.uid)
     })
 
     //CleanUp Function
@@ -21,11 +24,18 @@ const App = () => {
       unSub();
     };
 
-  },[])
+  },[fetchUserInfo])
+
+  // console.log(currentUser);
+  if(IsLoading){
+    return <div className="loading">  
+      loading...
+    </div>
+  }
 
   return (
     <div className="container">
-      {user ? (
+      {currentUser ? (
         <>
           <List />
           <Chat />

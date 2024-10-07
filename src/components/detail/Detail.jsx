@@ -1,3 +1,4 @@
+import { auth } from "../../library/firebase";
 import "./detail.css";
 import React from "react";
 
@@ -112,7 +113,7 @@ const Detail = () => {
       <div className="flex flex-col place-content-center py-2 gap-2">
 
       <button className="border-none bg-red-700 text-sm  text-white w-[100%] rounded-sm cursor-pointer hover:bg-red-800 p-1">Block user</button>
-      <button className="border-none bg-blue-700 text-sm  text-white w-[100%] rounded-sm cursor-pointer hover:bg-blue-800 p-1">LogOut user</button>
+      <button className="border-none bg-blue-700 text-sm  text-white w-[100%] rounded-sm cursor-pointer hover:bg-blue-800 p-1" onClick={()=>auth.signOut()}>LogOut user</button>
       </div>
     </div>
   );
