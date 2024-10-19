@@ -29,7 +29,7 @@ const Chat = () => {
         <div className="user flex gap-2">
           <img className="w-8 h-8" src="./avatar.png" alt="" />
           <div className="texts text-gray-300">
-            <span className="text-lg">Pari</span>
+            <span className="text-lg">Mahesh</span>
             <p className="text-xs">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Assumenda, soluta.</p>
           </div>
         </div>

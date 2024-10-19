@@ -1,11 +1,13 @@
 .addUser{
     background-color: rgba(134, 158, 203);
+    height: fit-content;
     position: absolute;
-    top: 40px;
+    top: 250px;
     right: 0;
     bottom: 0;
     left: 0;
     margin: auto;
+    border-radius: 5px;
 }
 
 .addUser button{
