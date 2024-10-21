@@ -4,11 +4,14 @@ import Adduser from "./addUser/Adduser";
 import { userStore } from "../../../library/userStore";
 import { doc,getDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../../../library/firebase";
+import { useChatStore } from "../../../library/chatStore";
 
 const ChatList = () => {
   const [chats, setChats] = useState([]);
   const [addMode, SetAddMode] = useState(false);
   const { currentUser, IsLoading } = userStore();
+
+  const { changeChat } = useChatStore();
 
   useEffect(() => {
     // Return early if the user is still loading or if there's no user
@@ -47,6 +50,11 @@ const ChatList = () => {
     return <div>No user data found</div>; // Handle the case where no user data is available
   }
 
+  const handleSelect = async (chat) =>{
+
+    changeChat(chat.chatId,chat.user)
+  
+  }
   return (
     <div className="ChatList p-2 relative">
       {/* Search Bar Start */}
@@ -73,7 +81,7 @@ const ChatList = () => {
 
       {chats.map((chat) => {
 
-        return (<div className=" py-2 flex items-center gap-4 border-b border-gray-400" key={chat.chatId}>
+        return (<div className=" py-2 flex items-center gap-4 border-b border-gray-400" key={chat.chatId} onClick={()=>handleSelect(chat)}>
           <img className="w-8 h-8" src={chat.user.avatar || "./avatar.png"} alt="" />
           <div className="texts">
             <h1 className="text-white text-lg">{chat.user.username}</h1>
