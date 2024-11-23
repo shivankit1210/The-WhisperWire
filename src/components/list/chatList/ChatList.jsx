@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./chatlist.css";
 import Adduser from "./addUser/Adduser";
 import { userStore } from "../../../library/userStore";
-import { doc,getDoc, onSnapshot } from "firebase/firestore";
+import { doc,getDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../../../library/firebase";
 import { useChatStore } from "../../../library/chatStore";
 
@@ -11,7 +11,7 @@ const ChatList = () => {
   const [addMode, SetAddMode] = useState(false);
   const { currentUser, IsLoading } = userStore();
 
-  const { changeChat } = useChatStore();
+  const { chatId,changeChat } = useChatStore();
 
   useEffect(() => {
     // Return early if the user is still loading or if there's no user
@@ -52,7 +52,28 @@ const ChatList = () => {
 
   const handleSelect = async (chat) =>{
 
-    changeChat(chat.chatId,chat.user)
+    const userChats= chats.map((item)=>{
+      const {user, ...rest} = item;
+      return rest;
+    })
+
+      const chatIndex = userChats.findIndex(item=>item.chatId === chat.chatId);
+      userChats[chatIndex].isSeen = true;
+
+      const userChatsRef = doc(db,"userchats",currentUser.id);
+
+      try {
+        await updateDoc(userChatsRef,{
+          chats:userChats,
+        })
+        changeChat(chat.chatId,chat.user)
+      } catch (error) {
+        console.log(error)
+      }
+
+
+    
+
   
   }
   return (
@@ -81,7 +102,7 @@ const ChatList = () => {
 
       {chats.map((chat) => {
 
-        return (<div className=" py-2 flex items-center gap-4 border-b border-gray-400" key={chat.chatId} onClick={()=>handleSelect(chat)}>
+        return (<div className=" py-2 flex items-center gap-4 border-b border-gray-400 hover:cursor-pointer " style={{backgroundColor: chat?. isSeen ? "transparent" : "blue"}} key={chat.chatId} onClick={()=>handleSelect(chat)}>
           <img className="w-8 h-8" src={chat.user.avatar || "./avatar.png"} alt="" />
           <div className="texts">
             <h1 className="text-white text-lg">{chat.user.username}</h1>

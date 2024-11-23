@@ -97,13 +97,13 @@ const Login = () => {
 
 
   return (
-    <div className="login  flex gap-x-72 justify-evenly items-center  w-[100%] relative">
+    <div className="login flex-col  md:flex md:gap-x-72 justify-evenly items-center  w-[100%] relative">
 
         {/* Form section for login start here */}
 
-      <div className="item  absolute top-26 left-[10rem] p-10 gap-y-3 ">
+      <div className="item   absolute top-26 left-[10rem] p-10 gap-y-3 ">
         <h1 className="text-xl font-black">Welcome back,</h1>
-        <form className="gap-y-5" action="submit" onSubmit={handleLogin} >
+        <form className=" gap-y-1 md:gap-y-5" action="submit" onSubmit={handleLogin} >
           <input type="text"  placeholder="Enter Your Email" name="email" />
           <input type="password" placeholder="Enter Your Password" name="password" />
           <button disabled={loading}>{!loading? "Sign In": "Loading..."}</button>
@@ -116,11 +116,12 @@ const Login = () => {
 
           {/* Input section for signup start here */}
 
-      <div className="item  absolute top-26 right-[9rem] p-10 gap-y-3">
+      {/* <div className="item  absolute top-26 right-[9rem] p-10 gap-y-3"> */}
+      <div className="item  absolute top-56 md:top-28 left-44 md:left-[800px] right-[9rem] p-3 md:p-10 gap-y-0 md:gap-y-3">
         <h1 className="text-xl font-black">Create an Account!</h1>
         <form className="gap-y-5 relative" action="submit" onSubmit={handleRegister}>
           <label htmlFor="file" className="text-green-500 bg-gray-500 rounded-md p-1 font-semibold hover:cursor-pointer ">
-            <img className="rounded-full absolute top-[-7.0rem] left-[5.5rem] w-16 h-16 " src={avatar.url || "./avatar.png"} alt="" />
+            <img className="rounded-full border-none outline-none absolute top-[-7.0rem] left-[5.5rem] w-16 h-16 " src={avatar.url || "./avatar.png"} alt="" />
             Upload an Image
           </label>
 

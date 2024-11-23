@@ -8,10 +8,12 @@ import { onAuthStateChanged } from "firebase/auth";
 import {auth} from "./library/firebase"
 import { userStore } from "./library/userStore";
 import "./index.css"
+import { useChatStore } from "./library/chatStore";
 
 const App = () => {
 
   const {currentUser,IsLoading,fetchUserInfo} = userStore();
+  const {chatId} = useChatStore();
 
  
   useEffect(()=>{
@@ -38,8 +40,8 @@ const App = () => {
       {currentUser ? (
         <>
           <List />
-          <Chat />
-          <Detail />
+          {chatId && <Chat/>}
+          {chatId && <Detail/>}
         </>
       ) : (
         <Login />
