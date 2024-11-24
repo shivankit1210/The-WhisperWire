@@ -1,3 +1,4 @@
+// Details Component
 import { arrayRemove, arrayUnion, doc, updateDoc } from "firebase/firestore";
 import { useChatStore } from "../../library/chatStore";
 import { auth, db } from "../../library/firebase";
@@ -11,19 +12,16 @@ const Detail = () => {
   const { currentUser } = userStore();
 
   const handleBlock = async () => {
+    console.log("user is blocked ",user)
     if (!user) return;
-
     const userDocRef = doc(db, "users", currentUser.id);
 
     try {
       await updateDoc(userDocRef, {
         blocked: isReceiverBlocked ? arrayRemove(user.id) : arrayUnion(user.id),
       });
-
-      // Fetch updated user info and update states
-      userStore.getState().fetchUserInfo(currentUser.id, () => {
-        changeBlock();
-      });
+      await userStore.fetchUserInfo(currentUser.id);
+      changeBlock();
     } catch (error) {
       console.log(error);
     }
@@ -34,17 +32,15 @@ const Detail = () => {
       <div className="user py-3 flex flex-col border-b border-gray-400 place-content-center items-center">
         <img
           className="w-16 h-16 rounded-full"
-          // src={user?.avatar || "./avatar.png"}
-          src={isReceiverBlocked ? user?.avatar : "./avatar.png"}
-          alt="user Profile"
+          src={user?.avatar || "./avatar.png"}
+          alt=""
         />
         <h1 className="text-white">{user?.username}</h1>
-        {/* <p className="text-white"> Lorem ipsum dolor sit. </p> */}
+        <p className="text-white"> Lorem ipsum dolor sit. </p>
       </div>
 
       <div className="info ">
         <div className="option py-2">
-          {" "}
           <div className="title flex justify-between">
             <span className=" text-xs text-white">Chat Setting</span>
             <img
@@ -127,16 +123,28 @@ const Detail = () => {
         </div>
       </div>
 
-      <div className="info flex flex-col  gap-y-2  h-[12%]">
+      <div className="option">
+        <div className="title flex justify-between">
+          <span className="text-white text-xs">Shared Files</span>
+          <img
+            className="w-5 h-5 bg-blue-900 rounded-full p-1"
+            src="./arrowUp.png"
+            alt=""
+          />
+        </div>
+      </div>
+      <div className="flex flex-col place-content-center py-2 gap-2">
         <button
-          className="border-none  bg-red-500 text-sm text-white w-[100%] rounded-sm cursor-pointer p-1"
+          className="border-none bg-red-700 text-sm  text-white w-[100%] rounded-sm cursor-pointer hover:bg-red-800 p-1"
           onClick={handleBlock}
         >
-          {isCurrentUserBlocked
-            ? "You Are Blocked!"
+          {
+          isCurrentUserBlocked
+            ? "You Are Blocked! "
             : isReceiverBlocked
-            ? "User Blocked!"
-            : "Block User"}
+            ? "User Blocked! "
+            : "Block user"
+            }
         </button>
         <button
           className="border-none bg-blue-700 text-sm  text-white w-[100%] rounded-sm cursor-pointer hover:bg-blue-800 p-1"
@@ -150,3 +158,6 @@ const Detail = () => {
 };
 
 export default Detail;
+
+
+//details component end here
