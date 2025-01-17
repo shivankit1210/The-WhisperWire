@@ -90,13 +90,14 @@ const Login = () => {
   };
 
   return (
-    <div className="login flex-col  md:flex md:gap-x-72 justify-evenly items-center  w-[100%] relative">
+    <div className="login flex flex-col gap-y-10  md:flex md:gap-x-72  justify-evenly items-center  w-[100%] relative">
       {/* Form section for login start here */}
+      <div className="rounded-full bg-blue-300 animate-pulse md:w-5 md:h-5 absolute md:right-3 md:top-3 right-3 top-5"></div>
 
-      <div className="item   absolute top-26 left-[10rem] p-10 gap-y-3 ">
-        <h1 className="text-xl font-black">Welcome back,</h1>
+      <div className="item h-[30%] w-[65%] md:w-[30%] md:h-[40%] gap-y-5   md:absolute md:top-26 md:left-[10rem]  md:p-10 md:gap-y-3 ">
+        <h1 className="text-xl font-black">Welcome back</h1>
         <form
-          className=" gap-y-1 md:gap-y-5"
+          className="  gap-5 md:gap-y-5"
           action="submit"
           onSubmit={handleLogin}
         >
@@ -114,15 +115,14 @@ const Login = () => {
 
       {/* Separator class */}
 
-      <div className="separator h-[80%] w-[0.01rem] bg-gray-300"></div>
+      <div className="separator hidden md:block md:h-[80%] md:w-[0.01rem] bg-gray-300"></div>
 
       {/* Input section for signup start here */}
 
-      {/* <div className="item  absolute top-26 right-[9rem] p-10 gap-y-3"> */}
-      <div className="item  absolute top-56 md:top-28 left-44 md:left-[800px] right-[9rem] p-3 md:p-10 gap-y-0 md:gap-y-3">
+      <div className="item w-[65%] h-[45%] md:w-[30%] md:h-[60%] md:absolute  md:top-28 md:left-[800px] md:right-[9rem] p-5 md:p-10  md:gap-y-3">
         <h1 className="text-xl font-black">Create an Account!</h1>
         <form
-          className="gap-y-5 relative"
+          className="gap-y-5"
           action="submit"
           onSubmit={handleRegister}
         >
@@ -135,13 +135,13 @@ const Login = () => {
           <input
             className=""
             type="file"
-            id="file"
             style={{ display: "none" }}
             onChange={handleAvatar}
           />
           <input
+          className=""
             type="text"
-            placeholder="Enter New Username..."
+            placeholder="Enter new Username..."
             name="username"
           />
           <input type="text" placeholder="Enter Your Email..." name="email" />

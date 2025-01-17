@@ -30,7 +30,7 @@ const Detail = () => {
   };
 
   return (
-    <div className="detail p-2">
+    <div className="detail p-2 md:block hidden">
       <div className="user py-3 flex flex-col border-b border-gray-400 place-content-center items-center">
         <img
           className="w-16 h-16 rounded-full"

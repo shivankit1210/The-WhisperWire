@@ -13,7 +13,9 @@ import { useChatStore } from "../../library/chatStore";
 import { userStore } from "../../library/userStore";
 import upload from "../../library/upload";
 
-const Chat = () => {
+const Chat = ({openChat,setOpenChat}) => {
+
+
   const [chat, setChat] = useState(null);
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
@@ -110,26 +112,30 @@ const Chat = () => {
     };
   }, [chatId]);
 
-  // console.log(chat);
+  const handleBack = () =>{
+    setOpenChat(!openChat)
+  }
+  // ${openChat ? "block" : "hidden"}
+
 
   return (
-    <div className="chat border-x border-gray-400 rounded-sm p-2">
+    <div className={` ${openChat ? "block " : "hidden" } chat border-gray-400 rounded-sm border-x h-[120vh] md:h-[100%] md:m-0 m-0 p-2 relative`}>
+      {/* back button  */}
       {/* Top Section of Chat Start */}
-      <div className="top flex  justify-between  p-1 items-center border-b">
-        <div className="user flex gap-2">
-          <img className="w-8 h-8" src={user?.avatar || "./avatar.png"} alt="" />
-          <div className="texts text-gray-300">
-            <span className="text-lg">{user?.username}</span>
-            {/* <p className="text-xs">
-              Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-              Assumenda, soluta.
-            </p> */}
+      <div className="top flex  justify-between  md:p-1 p-4 items-center border-b">
+      <div onClick={handleBack} className={`${openChat ? "block md:hidden" : "hidden"} absolute text-white text-5xl left-2 `}>{"<"}</div>
+
+        <div className="user ml-5 md:ml-0 flex gap-2">
+          <img className="md:w-8 md:h-8 w-14 h-14 rounded-full" src={user?.avatar || "./avatar.png"} alt="" />
+          <div className="texts text-gray-300 flex justify-center items-center">
+            <span className="md:text-lg text-4xl ">{user?.username}</span>
+            
           </div>
         </div>
-        <div className="icon flex gap-4">
-          <img className="w-4 h-4" src="./phone.png" alt="" srcset="" />
-          <img className="w-4 h-4" src="./video.png" alt="" srcset="" />
-          <img className="w-4 h-4" src="./info.png" alt="" srcset="" />
+        <div className="icon flex md:gap-4 gap-6">
+          <img className="md:w-4 md:h-4 w-6 h-6" src="./phone.png" alt="" srcset="" />
+          <img className="md:w-4 md:h-4 w-6 h-6" src="./video.png" alt="" srcset="" />
+          <img className="md:w-4 md:h-4 w-6 h-6" src="./info.png" alt="" srcset="" />
         </div>
       </div>
 
@@ -144,7 +150,7 @@ const Chat = () => {
             >
               <div className="texts flex flex-col w-80   justify-center p-1">
                 {message.img && <img  className="w-36 h-40" src={message.img} alt="" />}
-                <p className="text-sm text-blue-900 font-light bg-white rounded-md p-1 mt-1">
+                <p className="md:text-sm text-xl text-blue-900 font-light bg-white rounded-md p-2 md:p-1 mt-2 md:mt-1">
                   {message.text}
                 </p>
               </div>
@@ -171,9 +177,9 @@ const Chat = () => {
 
       {/* Type And Send Section Start here */}
       <div className="bottom flex justify-between items-center p-2">
-        <div className="icon flex gap-3">
+        <div className="icon flex gap-2">
           <label htmlFor="file">
-            <img className="w-5 h-5" src="./img.png" alt="" srcset="" />
+            <img className="md:w-5 md:h-5 w-8 h-8" src="./img.png" alt="" srcset="" />
           </label>
           <input
             type="file"
@@ -181,11 +187,11 @@ const Chat = () => {
             style={{ display: "none" }}
             onChange={handleImg}
           />
-          <img className="w-5 h-5" src="./camera.png" alt="" srcset="" />
-          <img className="w-5 h-5" src="./mic.png" alt="" srcset="" />
+          {/* <img className="md:w-5 md:h-5 w-8 h-8" src="./camera.png" alt="" srcset="" /> */}
+          <img className="md:w-5 md:h-5 w-8 h-8" src="./mic.png" alt="" srcset="" />
         </div>
         <input
-          className=" chatInput w-[26rem] bg-transparent border-b border-none outline-none text-white rounded-[0.225rem] p-2 text-sm"
+          className=" chatInput md:h-[2rem] h-[3rem] w-[18rem] md:w-[28rem] bg-transparent border-b border-none outline-none text-white rounded-[0.225rem] p-2 text-sm"
           type="text"
           name=""
           value={text}
@@ -196,7 +202,7 @@ const Chat = () => {
         />
         <div className="emoji">
           <img
-            className="w-5 h-5"
+            className="md:w-5 md:h-5 w-8 h-8"
             src="./emoji.png"
             onClick={() => setOpen((prev) => !prev)}
             alt=""
@@ -206,7 +212,7 @@ const Chat = () => {
             <EmojiPicker open={open} onEmojiClick={handleEmoji} />
           </div>
         </div>
-        <button className="pl-2 sendButton" onClick={handleSend} disabled={isCurrentUserBlocked || isReceiverBlocked}>
+        <button className="pl-2 sendButton bg-slate-400 p-2 rounded-xl" onClick={handleSend} disabled={isCurrentUserBlocked || isReceiverBlocked}>
           Send
         </button>
       </div>

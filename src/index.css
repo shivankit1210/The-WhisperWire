@@ -27,11 +27,27 @@ body{
   height: 90vh;
   /* background-color: rgba(17, 25, 40,0.1); */
   background-color: rgba(242, 246, 254, 0.01);
+  /* background-color: rgba(34, 34, 34, 0.01); */
   backdrop-filter: blur(19px) saturate(180%);
   border-radius: 5px;
   display:flex;
 }
 
+@media  (min-width: 300px) and (max-width: 768px)  {
+
+  body{
+    height: 120vh;
+    display: flex;
+    align-items: start;
+    justify-content: flex-start;
+  }
+
+  .container{
+    width: 132vw;
+    height: 120vh;
+  }
+  
+}
 
 
 

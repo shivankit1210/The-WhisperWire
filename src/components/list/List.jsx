@@ -3,11 +3,11 @@ import React from 'react'
 import ChatList from "./chatList/ChatList";
 import Userinfo from "./userinfo/Userinfo";
 
-const List = () => {
+const List = ({setOpenChat,openChat}) => {
   return (
-    <div className="list">
+    <div className={`list ${openChat ? "hidden md:block" : "block"}`}>
       <Userinfo/>
-      <ChatList/>
+      <ChatList setOpenChat={setOpenChat} openChat={openChat}/>
     </div>
   )
 }
