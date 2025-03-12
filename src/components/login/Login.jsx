@@ -19,6 +19,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
 
   const handleAvatar = (e) => {
+    console.log("clicked")
     if (e.target.files[0]) {
       setAvatar({
         file: e.target.files[0],
@@ -133,6 +134,7 @@ const Login = () => {
           
 
           <input
+            id="file"
             className=""
             type="file"
             style={{ display: "none" }}
