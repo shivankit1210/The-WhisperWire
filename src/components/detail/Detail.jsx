@@ -34,12 +34,13 @@ const Detail = () => {
       <div className="user py-3 flex flex-col border-b border-gray-400 place-content-center items-center">
         <img
           className="w-16 h-16 rounded-full"
-          // src={user?.avatar || "./avatar.png"}
+          
           src={isReceiverBlocked ? user?.avatar : "./avatar.png"}
+          // src={isReceiverBlocked ? user?.avatar : "./avatar.png"}
           alt="user Profile"
         />
         <h1 className="text-white">{user?.username}</h1>
-        {/* <p className="text-white"> Lorem ipsum dolor sit. </p> */}
+        
       </div>
 
       <div className="info ">
