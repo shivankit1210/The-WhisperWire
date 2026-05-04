@@ -1,24 +1,26 @@
 import List from "./components/list/List";
-import Chat from "./components/chat/Chat";
-import Detail from "./components/detail/Detail";
-import Login from "./components/login/Login";
-import Notification from "./components/notification/Notification";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./library/firebase";
 import { userStore } from "./library/userStore";
 import "./index.css";
 import { useChatStore } from "./library/chatStore";
-import { Route, Routes } from "react-router-dom";
+import Icon from "./components/icons/Icon";
+
+const Chat = lazy(() => import("./components/chat/Chat"));
+const Detail = lazy(() => import("./components/detail/Detail"));
+const Login = lazy(() => import("./components/login/Login"));
+const Notification = lazy(() => import("./components/notification/Notification"));
 
 const App = () => {
-  const { currentUser, IsLoading, fetchUserInfo } = userStore();
-  const { chatId } = useChatStore();
+  const { currentUser, isLoading, fetchUserInfo } = userStore();
+  const { chatId, resetChat } = useChatStore();
   const [openChat, setOpenChat] = useState(false);
-  console.log(openChat);
 
   useEffect(() => {
     const unSub = onAuthStateChanged(auth, (user) => {
+      resetChat();
+      setOpenChat(false);
       fetchUserInfo(user?.uid);
     });
 
@@ -26,10 +28,9 @@ const App = () => {
     return () => {
       unSub();
     };
-  }, [fetchUserInfo]);
+  }, [fetchUserInfo, resetChat]);
 
-  // console.log(currentUser);
-  if (IsLoading) {
+  if (isLoading) {
     return <div className="loading">loading...</div>;
   }
 
@@ -39,13 +40,29 @@ const App = () => {
         <>
           <List setOpenChat={setOpenChat} openChat={openChat} />
 
-          {chatId && <Chat openChat={openChat} setOpenChat={setOpenChat} />}
-          {chatId && <Detail />}
+          <Suspense fallback={null}>
+            {chatId ? (
+              <Chat openChat={openChat} setOpenChat={setOpenChat} />
+            ) : (
+              <div className="emptyChat">
+                <div className="emptyChat__icon">
+                  <Icon name="search" size={30} />
+                </div>
+                <h2>Select a conversation</h2>
+                <p>Search your chats or add a user to start messaging.</p>
+              </div>
+            )}
+            {chatId && <Detail />}
+          </Suspense>
         </>
       ) : (
-        <Login />
+        <Suspense fallback={null}>
+          <Login />
+        </Suspense>
       )}
-      <Notification />
+      <Suspense fallback={null}>
+        <Notification />
+      </Suspense>
     </div>
   );
 };

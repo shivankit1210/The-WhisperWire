@@ -1,3 +1,23 @@
-.list{
-    flex: 1;
+.list {
+  min-width: 300px;
+  max-width: 380px;
+  display: flex;
+  flex: 0 0 34%;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid rgba(166, 213, 255, 0.14);
+  background: rgba(6, 13, 36, 0.62);
+}
+
+@media (max-width: 768px) {
+  .list {
+    width: 100%;
+    max-width: none;
+    flex: 1 1 100%;
+    border-right: 0;
   }
+
+  .list--mobileHidden {
+    display: none;
+  }
+}

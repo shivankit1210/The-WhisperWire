@@ -1,5 +1,5 @@
 import "./login.css";
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import {
   createUserWithEmailAndPassword,
@@ -9,24 +9,53 @@ import { auth, db } from "../../library/firebase";
 import { doc, setDoc, query, collection, where } from "firebase/firestore";
 import upload from "../../library/upload";
 import { getDocs } from "firebase/firestore";
+import { userStore } from "../../library/userStore";
+
+const getAuthErrorMessage = (error) => {
+  switch (error.code) {
+    case "auth/email-already-in-use":
+      return "This email is already registered. Try logging in instead.";
+    case "auth/invalid-email":
+      return "Please enter a valid email address.";
+    case "auth/weak-password":
+      return "Password should be at least 6 characters.";
+    case "auth/operation-not-allowed":
+      return "Email/password signup is disabled in Firebase Authentication.";
+    case "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
+      return "Firebase API key is invalid. Check your .env file.";
+    default:
+      return error.message || "Authentication failed. Please try again.";
+  }
+};
 
 const Login = () => {
   const [avatar, setAvatar] = useState({
     file: null,
-    url: " ",
+    url: "",
   });
 
   const [loading, setLoading] = useState(false);
+  const [authMode, setAuthMode] = useState("signup");
+  const { fetchUserInfo } = userStore();
+  const isSignup = authMode === "signup";
 
   const handleAvatar = (e) => {
-    console.log("clicked")
     if (e.target.files[0]) {
-      setAvatar({
-        file: e.target.files[0],
-        url: URL.createObjectURL(e.target.files[0]),
+      setAvatar((prev) => {
+        if (prev.url.trim()) URL.revokeObjectURL(prev.url);
+        return {
+          file: e.target.files[0],
+          url: URL.createObjectURL(e.target.files[0]),
+        };
       });
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (avatar.url.trim()) URL.revokeObjectURL(avatar.url);
+    };
+  }, [avatar.url]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -35,15 +64,25 @@ const Login = () => {
     const { username, email, password } = Object.fromEntries(formData);
 
     // VALIDATE INPUTS
-    if (!username || !email || !password)
+    if (!username || !email || !password) {
+      setLoading(false);
       return toast.warn("Please enter inputs!");
-    if (!avatar.file) return toast.warn("Please upload an avatar!");
+    }
+    if (!avatar.file) {
+      setLoading(false);
+      return toast.warn("Please upload an avatar!");
+    }
+    if (password.length < 6) {
+      setLoading(false);
+      return toast.warn("Password should be at least 6 characters.");
+    }
 
     //validate unique username
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("username", "==", username));
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
+      setLoading(false);
       return toast.warn("Select another username");
     }
 
@@ -63,10 +102,10 @@ const Login = () => {
         chats: [],
       });
 
+      await fetchUserInfo(res.user.uid);
       toast.success("Account Created Successfully !");
     } catch (error) {
-      console.log(error);
-      toast.error(error);
+      toast.error(getAuthErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -83,79 +122,105 @@ const Login = () => {
       await signInWithEmailAndPassword(auth, email, password);
       toast.success("You are Signing In...");
     } catch (error) {
-      console.log(error);
-      toast.error(error.message);
+      toast.error(getAuthErrorMessage(error));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login flex flex-col gap-y-10  md:flex md:gap-x-72  justify-evenly items-center  w-[100%] relative">
-      {/* Form section for login start here */}
-      <div className="rounded-full bg-blue-300 animate-pulse md:w-5 md:h-5 absolute md:right-3 md:top-3 right-3 top-5"></div>
+    <div className="login">
+      <div className="login__glow login__glow--one"></div>
+      <div className="login__glow login__glow--two"></div>
 
-      <div className="item h-[30%] w-[65%] md:w-[30%] md:h-[40%] gap-y-5   md:absolute md:top-26 md:left-[10rem]  md:p-10 md:gap-y-3 ">
-        <h1 className="text-xl font-black">Welcome back</h1>
-        <form
-          className="  gap-5 md:gap-y-5"
-          action="submit"
-          onSubmit={handleLogin}
-        >
-          <input type="text" placeholder="Enter Your Email" name="email" />
-          <input
-            type="password"
-            placeholder="Enter Your Password"
-            name="password"
-          />
-          <button disabled={loading}>
-            {!loading ? "Sign In" : "Loading..."}
-          </button>
-        </form>
-      </div>
+      <section className="login__intro" aria-label="The WhisperWire">
+        <span className="login__eyebrow">The WhisperWire</span>
+        <h1>Private chats with a little midnight shine.</h1>
+        <p>
+          Sign in to continue your conversations, or create a new account and
+          join the wire.
+        </p>
+        <div className="login__signal" aria-hidden="true">
+          <span className="login__ring login__ring--outer"></span>
+          <span className="login__ring login__ring--middle"></span>
+          <span className="login__ring login__ring--inner"></span>
+          <span className="login__dot"></span>
+          <span className="login__wave login__wave--one"></span>
+          <span className="login__wave login__wave--two"></span>
+          <span className="login__wave login__wave--three"></span>
+        </div>
+      </section>
 
-      {/* Separator class */}
+      <div className="login__forms">
+        <div className="login__card">
+          <div className="login__tabs" role="tablist" aria-label="Authentication options">
+            <button
+              type="button"
+              className={`login__tab ${isSignup ? "login__tab--active" : ""}`}
+              aria-selected={isSignup}
+              role="tab"
+              onClick={() => setAuthMode("signup")}
+            >
+              Sign Up
+            </button>
+            <button
+              type="button"
+              className={`login__tab ${!isSignup ? "login__tab--active" : ""}`}
+              aria-selected={!isSignup}
+              role="tab"
+              onClick={() => setAuthMode("login")}
+            >
+              Login
+            </button>
+          </div>
 
-      <div className="separator hidden md:block md:h-[80%] md:w-[0.01rem] bg-gray-300"></div>
+          <span className="login__card-label">
+            {isSignup ? "New here?" : "Existing account"}
+          </span>
+          <h2>{isSignup ? "Create an account" : "Welcome back"}</h2>
 
-      {/* Input section for signup start here */}
+          <form
+            className="login__form"
+            action="submit"
+            onSubmit={isSignup ? handleRegister : handleLogin}
+          >
+            {isSignup && (
+              <>
+                <label htmlFor="file" className="login__upload">
+                  <span className="login__avatar-wrap">
+                    <img
+                      className="login__avatar"
+                      src={avatar.url || "./avatar.png"}
+                      alt="Selected avatar preview"
+                    />
+                  </span>
+                  <span>
+                    <strong>
+                      {avatar.file ? "Change avatar" : "Upload avatar"}
+                    </strong>
+                    <small>
+                      {avatar.file ? avatar.file.name : "PNG, JPG, or WEBP"}
+                    </small>
+                  </span>
+                </label>
 
-      <div className="item w-[65%] h-[45%] md:w-[30%] md:h-[60%] md:absolute  md:top-28 md:left-[800px] md:right-[9rem] p-5 md:p-10  md:gap-y-3">
-        <h1 className="text-xl font-black">Create an Account!</h1>
-        <form
-          className="gap-y-5"
-          action="submit"
-          onSubmit={handleRegister}
-        >
-          <label htmlFor="file" className="text-green-500 bg-gray-500  rounded-md p-1 font-semibold relative ">
-            <img className=" outline-none border-0 rounded-full absolute top-[-7.0rem] bg-transparent left-[2.5rem] w-16 h-16 " src={avatar.url || "./avatar.png"} alt="" style={{ background: "transparent" }} />
-            Upload an Image
-          </label>
-          
-
-          <input
-            id="file"
-            className=""
-            type="file"
-            style={{ display: "none" }}
-            onChange={handleAvatar}
-          />
-          <input
-          className=""
-            type="text"
-            placeholder="Enter new Username..."
-            name="username"
-          />
-          <input type="text" placeholder="Enter Your Email..." name="email" />
-          <input
-            type="password"
-            placeholder="Enter New password..."
-            name="password"
-          />
-          <button disabled={loading}>
-            {!loading ? "Sign Up" : "Loading..."}
-          </button>
-        </form>
+                <input
+                  id="file"
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleAvatar}
+                />
+                <input type="text" placeholder="Username" name="username" />
+              </>
+            )}
+            <input type="email" placeholder="Email address" name="email" />
+            <input type="password" placeholder="Password" name="password" />
+            <button className="login__button" disabled={loading}>
+              {!loading ? (isSignup ? "Create Account" : "Sign In") : "Loading..."}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

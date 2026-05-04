@@ -1,27 +1,26 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "./chatList.css";
 import Adduser from "./addUser/Adduser";
 import { userStore } from "../../../library/userStore";
 import { doc,getDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../../../library/firebase";
 import { useChatStore } from "../../../library/chatStore";
+import Icon from "../../icons/Icon";
 
-const ChatList = ({setOpenChat,openChat}) => {
-  console.log()
+const ChatList = ({setOpenChat}) => {
   const [chats, setChats] = useState([]);
+  const [search, setSearch] = useState("");
   const [addMode, SetAddMode] = useState(false);
-  const { currentUser, IsLoading } = userStore();
+  const { currentUser, isLoading } = userStore();
 
-  const { chatId,changeChat } = useChatStore();
+  const { changeChat } = useChatStore();
 
   useEffect(() => {
-    // Return early if the user is still loading or if there's no user
-    // if (IsLoading || !currentUser?.uid) return;
+    if (isLoading || !currentUser?.id) return;
 
     const unSub = onSnapshot(doc(db, "userchats", currentUser.id), 
     async (res) => {
-      
-        const items= res.data().chats;
+        const items= res.data()?.chats || [];
 
         const promises =items.map(async (item)=>{
           const userDocRef= doc(db,"users" , item.receiverId);
@@ -41,9 +40,9 @@ const ChatList = ({setOpenChat,openChat}) => {
     return () => {
       unSub();
     };
-  }, [currentUser?.uid, IsLoading]);
+  }, [currentUser?.id, isLoading]);
 
-  if (IsLoading) {
+  if (isLoading) {
     return <div>Loading...</div>; // Add a loading indicator if needed
   }
 
@@ -53,14 +52,24 @@ const ChatList = ({setOpenChat,openChat}) => {
 
 
 
+  const filteredChats = chats.filter((chat) => {
+    const username = chat.user?.username?.toLowerCase() || "";
+    const lastMessage = chat.lastMessage?.toLowerCase() || "";
+    const queryText = search.trim().toLowerCase();
+
+    return username.includes(queryText) || lastMessage.includes(queryText);
+  });
+
   const handleSelect = async (chat) =>{
 
     const userChats= chats.map((item)=>{
-      const {user, ...rest} = item;
+      const rest = { ...item };
+      delete rest.user;
       return rest;
     })
 
       const chatIndex = userChats.findIndex(item=>item.chatId === chat.chatId);
+      if (chatIndex === -1) return;
       userChats[chatIndex].isSeen = true;
 
       const userChatsRef = doc(db,"userchats",currentUser.id);
@@ -71,50 +80,65 @@ const ChatList = ({setOpenChat,openChat}) => {
         })
         changeChat(chat.chatId,chat.user)
       } catch (error) {
-        console.log(error)
+        console.error(error)
       }
 
-      setOpenChat(!openChat);
+      setOpenChat(true);
   }
 
  
 
   return (
-    <div className="ChatList p-2 relative">
-      {/* Search Bar Start */}
-      <div className="searchbar flex  justify-between gap-1">
-        <div className="search p-1 rounded-lg flex justify-between gap-2 items-center">
-          <img className="w-5 h-4" src="./search.png" alt="" />
+    <div className="ChatList">
+      <div className="ChatList__toolbar">
+        <div className="search">
+          <Icon name="search" className="search__icon" />
           <input
-            className="w-44 h-5 rounded-sm bg-blue-100 bg-transparent border-none outline-none text-blue-200 size-2 "
             type="text"
-            placeholder="search"
+            placeholder="Search chats"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className=" plus flex justify-center items-center p-1 rounded-xl">
-          <img
-            className="w-5 h-5 hover:cursor-pointer"
-            src={addMode ? "./minus.png" : "./plus.png"}
-            onClick={() => SetAddMode((prev) => !prev)}
-            alt=""
-          />
-        </div>
+        <button
+          className="ChatList__addButton"
+          type="button"
+          aria-label={addMode ? "Close user search" : "Search for a new user"}
+          onClick={() => SetAddMode((prev) => !prev)}
+        >
+          <Icon name={addMode ? "x" : "plus"} />
+        </button>
       </div>
 
-      {/* Chats Section Start Here */}
+      <div className="ChatList__items">
+        {filteredChats.map((chat) => {
 
-      {chats.map((chat) => {
+          return (
+            <button
+              className={`ChatList__item ${chat?.isSeen ? "" : "ChatList__item--unread"}`}
+              key={chat.chatId}
+              type="button"
+              onClick={()=>handleSelect(chat)}
+            >
+              <img className="ChatList__avatar" src={chat.user?.avatar || "./avatar.png"} alt="" />
+              <span className="ChatList__content">
+                <span className="ChatList__name">{chat.user?.username}</span>
+                <span className="ChatList__message">{chat.lastMessage || "No messages yet"}</span>
+              </span>
+              {!chat?.isSeen && <span className="ChatList__badge" aria-label="Unread chat"></span>}
+            </button>
+          )
+        })}
 
-        return (<div  className={`py-2 flex items-center gap-4 border-b border-gray-400 hover:cursor-pointer  `} style={{backgroundColor: chat?. isSeen ? "transparent" : "blue"}} key={chat.chatId} onClick={()=>handleSelect(chat)}>
-          <img className="w-8 h-8" src={chat.user.avatar || "./avatar.png"} alt="" />
-          <div className="texts">
-            <h1 className="text-white text-lg">{chat.user.username}</h1>
-            <p className="text-white text-xs">{chat.lastMessage}</p>
+        {filteredChats.length === 0 && (
+          <div className="ChatList__empty">
+            <Icon name="search" />
+            <p>{search ? "No chats match your search." : "No chats yet. Add someone to start."}</p>
           </div>
-        </div>)
-      })}
+        )}
+      </div>
 
-      {addMode && <Adduser />}
+      {addMode && <Adduser existingChats={chats} onClose={() => SetAddMode(false)} />}
     </div>
   );
 };

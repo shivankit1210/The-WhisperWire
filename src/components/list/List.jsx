@@ -1,13 +1,12 @@
 import "./list.css";
-import React from 'react'
 import ChatList from "./chatList/ChatList";
 import Userinfo from "./userinfo/Userinfo";
 
 const List = ({setOpenChat,openChat}) => {
   return (
-    <div className={`list ${openChat ? "hidden md:block" : "block"}`}>
+    <div className={`list ${openChat ? "list--mobileHidden" : ""}`}>
       <Userinfo/>
-      <ChatList setOpenChat={setOpenChat} openChat={openChat}/>
+      <ChatList setOpenChat={setOpenChat}/>
     </div>
   )
 }

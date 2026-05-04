@@ -1,5 +1,5 @@
 import "./Adduser.css";
-import React, { useState } from "react";
+import { useState } from "react";
 import { userStore } from "../../../../library/userStore";
 import { db } from "../../../../library/firebase";
 import {
@@ -12,42 +12,69 @@ import {
   setDoc,
   updateDoc,
   arrayUnion,
-  getDoc,
 } from "firebase/firestore";
+import Icon from "../../../icons/Icon";
 
-const Adduser = () => {
+const Adduser = ({ existingChats = [], onClose }) => {
   const [user, setUser] = useState(null);
+  const [queryText, setQueryText] = useState("");
+  const [status, setStatus] = useState("idle");
+  const [feedback, setFeedback] = useState("");
 
   const { currentUser } = userStore();
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const username = formData.get("username");
+    const username = queryText.trim();
+
+    setUser(null);
+    setFeedback("");
+
+    if (!username) {
+      setFeedback("Enter an exact username to search.");
+      return;
+    }
 
     try {
+      setStatus("loading");
       const userRef = collection(db, "users");
 
       const q = query(userRef, where("username", "==", username));
 
       const querySnapShot = await getDocs(q);
-      console.log("s", querySnapShot);
 
       if (!querySnapShot.empty) {
-        setUser(querySnapShot.docs[0].data());
+        const foundUser = querySnapShot.docs[0].data();
+
+        if (foundUser.id === currentUser?.id) {
+          setFeedback("You are already signed in as this user.");
+          return;
+        }
+
+        if (existingChats.some((chat) => chat.receiverId === foundUser.id)) {
+          setFeedback("This user is already in your chat list.");
+          return;
+        }
+
+        setUser(foundUser);
+      } else {
+        setFeedback("No user found with that exact username.");
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      setFeedback("Search failed. Please try again.");
+    } finally {
+      setStatus("idle");
     }
   };
 
   const handleAdd = async () => {
+    if (!user) return;
+
     const userChatsRef = collection(db, "userchats");
     const chatRef = collection(db, "chats");
-    // console.log(chatRef);
-
     try {
-      console.log("inside handle,try")
+      setStatus("adding");
       const newChatRef = doc(chatRef);
       await setDoc(newChatRef, {
         createdAt: serverTimestamp(),
@@ -71,39 +98,61 @@ const Adduser = () => {
           updatedAt: Date.now(),
         }),
       });
+
+      onClose?.();
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      setFeedback("Could not add this user. Please try again.");
+    } finally {
+      setStatus("idle");
     }
   };
 
   return (
-    <div className="addUser flex flex-col p-5 text-black">
-      <form className="flex flex-row gap-x-5" onSubmit={handleSearch}>
+    <div className="addUser">
+      <div className="addUser__header">
+        <div>
+          <span>New conversation</span>
+          <h2>Find a user</h2>
+        </div>
+        <button className="iconButton" type="button" aria-label="Close user search" onClick={onClose}>
+          <Icon name="x" />
+        </button>
+      </div>
+
+      <form className="addUser__form" onSubmit={handleSearch}>
+        <div className="addUser__inputWrap">
+          <Icon name="search" />
         <input
-          className="bg-white p-1 w-52 rounded-md"
           type="text"
-          placeholder="Username"
+            placeholder="Search exact username"
           name="username"
+            value={queryText}
+            onChange={(e) => setQueryText(e.target.value)}
         />
-        <button id="search" className="p-1 w-14 bg-blue-500 border-none">
-          Search
+        </div>
+        <button className="addUser__searchButton" disabled={status === "loading"}>
+          {status === "loading" ? "Searching" : "Search"}
         </button>
       </form>
+
+      {feedback && <p className="addUser__feedback">{feedback}</p>}
+
       {user && (
-        <div className="user flex justify-between items-center p-1  ">
-          <div className="detail flex p-1 place-content-center items-center bg-white w-96 my-2 rounded-md gap-x-3">
+        <div className="addUser__result">
+          <div className="addUser__person">
             <img
-              className="w-5 h-5 rounded-full"
               src={user?.avatar || "./avatar.png"}
               alt=""
             />
-            <span className=""> {user?.username}</span>
+            <span>{user?.username}</span>
           </div>
           <button
-            className="p-1 w-14 bg-blue-500 border-none text-xs"
+            className="addUser__addButton"
             onClick={handleAdd}
+            disabled={status === "adding"}
           >
-            Add
+            {status === "adding" ? "Adding" : "Add"}
           </button>
         </div>
       )}

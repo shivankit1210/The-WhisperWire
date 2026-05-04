@@ -1,6 +1,5 @@
 import "./chat.css";
-import React, { useEffect, useRef, useState } from "react";
-import EmojiPicker from "emoji-picker-react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   arrayUnion,
   doc,
@@ -12,6 +11,9 @@ import { db } from "../../library/firebase";
 import { useChatStore } from "../../library/chatStore";
 import { userStore } from "../../library/userStore";
 import upload from "../../library/upload";
+import Icon from "../icons/Icon";
+
+const EmojiPicker = lazy(() => import("emoji-picker-react"));
 
 const Chat = ({ openChat, setOpenChat }) => {
   const [chat, setChat] = useState(null);
@@ -35,15 +37,18 @@ const Chat = ({ openChat, setOpenChat }) => {
 
   const handleImg = (e) => {
     if (e.target.files[0]) {
-      setImg({
+      setImg((prev) => {
+        if (prev.url) URL.revokeObjectURL(prev.url);
+        return {
         file: e.target.files[0],
         url: URL.createObjectURL(e.target.files[0]),
+        };
       });
     }
   };
 
   const handleSend = async () => {
-    if (text === "") return;
+    if (text.trim() === "" && !img.file) return;
 
     let imgUrl = null;
 
@@ -62,7 +67,7 @@ const Chat = ({ openChat, setOpenChat }) => {
 
       const userIDs = [currentUser.id, user.id];
 
-      userIDs.forEach(async (id) => {
+      await Promise.all(userIDs.map(async (id) => {
         const userChatsRef = doc(db, "userchats", id);
         const userChatsSnapshot = await getDoc(userChatsRef);
 
@@ -73,6 +78,7 @@ const Chat = ({ openChat, setOpenChat }) => {
           const chatIndex = userChatsData.chats.findIndex(
             (c) => c.chatId === chatId
           );
+          if (chatIndex === -1) return;
           // inside userChats we have chat array
           userChatsData.chats[chatIndex].lastMessage = text;
           userChatsData.chats[chatIndex].isSeen =
@@ -84,11 +90,12 @@ const Chat = ({ openChat, setOpenChat }) => {
             chats: userChatsData.chats,
           });
         }
-      });
+      }));
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
 
+    if (img.url) URL.revokeObjectURL(img.url);
     setImg({
       file: null,
       url: "",
@@ -102,6 +109,18 @@ const Chat = ({ openChat, setOpenChat }) => {
   }, [chat?.messages]);
 
   useEffect(() => {
+    if (!chatId) return;
+
+    setChat(null);
+    setText("");
+    setImg((prev) => {
+      if (prev.url) URL.revokeObjectURL(prev.url);
+      return {
+        file: null,
+        url: "",
+      };
+    });
+
     const unSub = onSnapshot(doc(db, "chats", chatId), (res) => {
       setChat(res.data());
     });
@@ -111,65 +130,52 @@ const Chat = ({ openChat, setOpenChat }) => {
     };
   }, [chatId]);
 
-  const handleBack = () => {
-    setOpenChat(!openChat);
-  };
-  // ${openChat ? "block" : "hidden"}
+  useEffect(() => {
+    return () => {
+      if (img.url) URL.revokeObjectURL(img.url);
+    };
+  }, [img.url]);
 
   return (
     <div
-      className={` ${
-        openChat ? "block " : "hidden"
-      } chat border-gray-400 rounded-sm border-x h-[120vh] md:h-[100%] md:m-0 m-0 p-2 relative`}
+      className={`${openChat ? "chat--open" : ""} chat`}
     >
-      {/* back button  */}
-      {/* Top Section of Chat Start */}
-      <div className="top flex  justify-between  md:p-1 p-4 items-center border-b">
-        <div
-          onClick={handleBack}
-          className={`${
-            openChat ? "block md:hidden" : "hidden"
-          } absolute text-white text-5xl left-2 `}
+      <div className="chat__top">
+        <button
+          type="button"
+          onClick={() => setOpenChat(false)}
+          className="chat__back"
+          aria-label="Back to chats"
         >
-          {"<"}
-        </div>
+          <Icon name="arrowLeft" />
+        </button>
 
-        <div className="user ml-5 md:ml-0 flex gap-2">
+        <div className="chat__user">
           <img
-            className="md:w-8 md:h-8 w-14 h-14 rounded-full"
             src={user?.avatar || "./avatar.png"}
             alt=""
           />
-          <div className="texts text-gray-300 flex justify-center items-center">
-            <span className="md:text-lg text-4xl ">{user?.username}</span>
+          <div className="chat__userText">
+            <span>{user?.username}</span>
+            <small>Active conversation</small>
           </div>
         </div>
-        <div className="icon flex md:gap-4 gap-6">
-          <img
-            className="md:w-4 md:h-4 w-6 h-6"
-            src="./phone.png"
-            alt=""
-            srcset=""
-          />
-          <img
-            className="md:w-4 md:h-4 w-6 h-6"
-            src="./video.png"
-            alt=""
-            srcset=""
-          />
-          <img
-            className="md:w-4 md:h-4 w-6 h-6"
-            src="./info.png"
-            alt=""
-            srcset=""
-          />
+        <div className="chat__actions">
+          <button className="iconButton" type="button" aria-label="Voice call">
+            <Icon name="phone" />
+          </button>
+          <button className="iconButton" type="button" aria-label="Video call">
+            <Icon name="video" />
+          </button>
+          <button className="iconButton" type="button" aria-label="Chat info">
+            <Icon name="info" />
+          </button>
         </div>
       </div>
 
-      <div className="md:h-[93%] h-[90%] flex flex-col justify-between">
-        {/* messages Display Start here */}
-      <div className="center overflow-scroll  overflow-x-hidden flex flex-col gap-y-3 text-white">
-        {chat?.messages?.map((message) => {
+      <div className="chat__body">
+      <div className="center">
+        {chat?.messages?.map((message, index) => {
           return (
             <div
               className={
@@ -178,22 +184,14 @@ const Chat = ({ openChat, setOpenChat }) => {
                   : "message"
               }
               // className={message.SenderId === currentUser?.id ? "message own m-0 flex gap-3 place-content-end " : "message m-0 flex gap-3"}
-              key={message?.createAt}
+              key={`${message?.createdAt?.seconds || "local"}-${index}`}
             >
-              <div className="texts flex flex-col w-80   justify-center p-1">
+              <div className="texts">
                 {message.img && (
-                  <img className="w-36 h-40" src={message.img} alt="" />
+                  <img className="message__image" src={message.img} alt="" />
                 )}
-                <p className="md:text-sm text-xl text-blue-900 font-light bg-white rounded-md p-2 md:p-1 mt-2 md:mt-1">
-                  {message.text}
-                </p>
+                {message.text && <p>{message.text}</p>}
               </div>
-              {/* <img
-                className="w-8 h-8 rounded-2xl"
-                src="./avatar.png"
-                alt=""
-                srcset=""
-              /> */}
             </div>
           );
         })}
@@ -201,7 +199,7 @@ const Chat = ({ openChat, setOpenChat }) => {
         {img.url && (
           <div className="message own">
             <div className="texts">
-              <img src={img.url} />
+              <img className="message__image" src={img.url} alt="Selected upload preview" />
             </div>
           </div>
         )}
@@ -209,59 +207,49 @@ const Chat = ({ openChat, setOpenChat }) => {
         <div ref={endRef}></div>
       </div>
 
-      {/* Type And Send Section Start here */}
-      <div className="bottom flex justify-between items-center p-2">
-        <div className="icon flex gap-2">
-          <label htmlFor="file">
-            <img
-              className="md:w-5 md:h-5 w-8 h-8"
-              src="./img.png"
-              alt=""
-              srcset=""
-            />
+      <div className="bottom">
+        <div className="chat__tools">
+          <label className="iconButton" htmlFor="file" aria-label="Attach image">
+            <Icon name="image" />
           </label>
           <input
             type="file"
             id="file"
+            accept="image/*"
             style={{ display: "none" }}
             onChange={handleImg}
           />
-          {/* <img className="md:w-5 md:h-5 w-8 h-8" src="./camera.png" alt="" srcset="" /> */}
-          <img
-            className="md:w-5 md:h-5 w-8 h-8"
-            src="./mic.png"
-            alt=""
-            srcset=""
-          />
+          <button className="iconButton" type="button" aria-label="Record audio">
+            <Icon name="mic" />
+          </button>
         </div>
         <input
-          className=" chatInput md:h-[2rem] h-[3rem] w-[18rem] md:w-[28rem] bg-transparent border-b border-none outline-none text-white rounded-[0.225rem] p-2 text-sm"
+          className="chatInput"
           type="text"
-          name=""
           value={text}
-          id=""
-          placeholder="Type a message....."
+          placeholder="Type a message..."
           onChange={(e) => setText(e.target.value)}
           disabled={isCurrentUserBlocked || isReceiverBlocked}
         />
         <div className="emoji">
-          <img
-            className="md:w-5 md:h-5 w-8 h-8"
-            src="./emoji.png"
-            onClick={() => setOpen((prev) => !prev)}
-            alt=""
-            srcset=""
-          />
+          <button className="iconButton" type="button" aria-label="Open emoji picker" onClick={() => setOpen((prev) => !prev)}>
+            <Icon name="smile" />
+          </button>
           <div className="picker">
-            <EmojiPicker open={open} onEmojiClick={handleEmoji} />
+            {open && (
+              <Suspense fallback={null}>
+                <EmojiPicker open={open} onEmojiClick={handleEmoji} />
+              </Suspense>
+            )}
           </div>
         </div>
         <button
-          className="pl-2 sendButton bg-slate-400 p-2 rounded-xl"
+          className="sendButton"
           onClick={handleSend}
           disabled={isCurrentUserBlocked || isReceiverBlocked}
+          aria-label="Send message"
         >
-          Send
+          <Icon name="send" />
         </button>
       </div>
 

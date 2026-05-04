@@ -1,21 +1,146 @@
-.addUser{
-    background-color: rgba(134, 158, 203);
-    height: fit-content;
-    position: absolute;
-    top: 250px;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    margin: auto;
-    border-radius: 5px;
+.addUser {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 76px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid rgba(146, 218, 255, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  color: #ffffff;
+  background: rgba(7, 15, 42, 0.96);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(20px) saturate(160%);
 }
 
-.addUser button{
-    box-shadow: none;
+.addUser__header,
+.addUser__form,
+.addUser__result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
-/* .addUser button:hover{
-    background-color:rgb(0, 234, 255) ;
-} */
-/* .addUser #search:hover{
-    background-color: rgb(21, 108, 143);
- } */
+
+.addUser__header span {
+  display: block;
+  color: rgba(167, 232, 255, 0.62);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.addUser__header h2 {
+  margin-top: 2px;
+  color: #ffffff;
+  font-size: 1.18rem;
+  font-weight: 900;
+}
+
+.addUser__form {
+  align-items: stretch;
+}
+
+.addUser__inputWrap {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(152, 217, 255, 0.18);
+  border-radius: 8px;
+  padding: 0 12px;
+  color: rgba(164, 225, 255, 0.72);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.addUser__inputWrap input {
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  outline: 0;
+  color: #ffffff;
+  background: transparent;
+}
+
+.addUser__inputWrap input::placeholder {
+  color: rgba(224, 239, 255, 0.48);
+}
+
+.addUser__searchButton,
+.addUser__addButton {
+  min-height: 42px;
+  border: 0;
+  border-radius: 8px;
+  color: #061424;
+  cursor: pointer;
+  font-weight: 900;
+  background: linear-gradient(135deg, #6de8ff, #a7f36a);
+}
+
+.addUser__searchButton {
+  width: 96px;
+}
+
+.addUser__addButton {
+  width: 72px;
+}
+
+.addUser__searchButton:disabled,
+.addUser__addButton:disabled {
+  cursor: not-allowed;
+  color: rgba(255, 255, 255, 0.55);
+  background: rgba(87, 95, 113, 0.7);
+}
+
+.addUser__feedback {
+  color: rgba(255, 220, 220, 0.86);
+  font-size: 0.82rem;
+}
+
+.addUser__result {
+  border: 1px solid rgba(152, 217, 255, 0.14);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.addUser__person {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.addUser__person img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.addUser__person span {
+  overflow: hidden;
+  color: #ffffff;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .addUser {
+    left: 14px;
+    right: 14px;
+  }
+
+  .addUser__form {
+    flex-direction: column;
+  }
+
+  .addUser__searchButton {
+    width: 100%;
+  }
+}
